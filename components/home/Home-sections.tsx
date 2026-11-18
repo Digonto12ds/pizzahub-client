@@ -57,7 +57,7 @@ export default function HomeSections() {
             {Array.from({ length: 6 }).map((_, index) => (
               <div
                 key={index}
-                className="h-[390px] animate-pulse rounded-2xl bg-[#F0E6D9]"
+                className="h-97.5 animate-pulse rounded-2xl bg-[#F0E6D9]"
               />
             ))}
           </div>

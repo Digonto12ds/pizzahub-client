@@ -82,7 +82,7 @@ export default function PizzaCategories() {
             >
               <Link
                 href={`/menu?category=${encodeURIComponent(category.name)}`}
-                className={`group flex h-full items-center justify-between gap-4 rounded-2xl border border-orange-100 bg-gradient-to-br ${category.color} p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#C93627]/30 hover:shadow-lg`}
+                className={`group flex h-full items-center justify-between gap-4 rounded-2xl border border-orange-100 bg-linear-to-br ${category.color} p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#C93627]/30 hover:shadow-lg`}
               >
                 <div className="flex items-center gap-4">
                   {/* Category Emoji */}
