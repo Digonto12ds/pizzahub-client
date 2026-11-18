@@ -1,7 +1,6 @@
 
 "use client";
 import { Menu, Bell, Store } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 type VendorHeaderProps = {
   onMenuClick: () => void;
@@ -9,7 +8,7 @@ type VendorHeaderProps = {
 export default function VendorHeader({
   onMenuClick,
 }: VendorHeaderProps) {
-  const router = useRouter();
+ 
   const { data: session } = authClient.useSession();
   const user = session?.user;
   return (
