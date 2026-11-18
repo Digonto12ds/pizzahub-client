@@ -11,6 +11,22 @@ export type VendorOverview = {
   subscriptionPlan: string;
 };
 
+
+export type VendorMenuItem = {
+  _id: string;
+  itemName: string;
+  category: string;
+  description: string;
+  price: number;
+  location: string;
+  images: string[];
+  status: "pending" | "approved" | "rejected";
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+
 export async function getVendorOverview(): Promise<VendorOverview> {
   const { data, error } = await authSession();
 
@@ -61,6 +77,112 @@ export async function addVendorMenuItem(formData: FormData) {
     throw new Error(
       result?.message || "Failed to add menu item."
     );
+  }
+
+  return result;
+}
+
+
+async function getVendorToken() {
+  const { data, error } = await authClient.getSession();
+  const token = data?.session?.token;
+
+  if (error || !token) {
+    throw new Error("Please sign in again.");
+  }
+
+  return token;
+}
+
+export async function getMyMenuItems(): Promise<VendorMenuItem[]> {
+  const token = await getVendorToken();
+
+  const response = await fetch(`${BASE_URL}/api/vendor/menu-items`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
+
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(result?.message || "Failed to load menu items.");
+  }
+
+  return result;
+}
+
+export async function updateVendorMenuItem(
+  id: string,
+  formData: FormData
+) {
+  const token = await getVendorToken();
+
+  const response = await fetch(
+    `${BASE_URL}/api/vendor/menu-items/${id}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    }
+  );
+
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(result?.message || "Failed to update menu item.");
+  }
+
+  return result;
+}
+
+export async function updateMenuItemAvailability(
+  id: string,
+  isActive: boolean
+) {
+  const token = await getVendorToken();
+
+  const response = await fetch(
+    `${BASE_URL}/api/vendor/menu-items/${id}/availability`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ isActive }),
+    }
+  );
+
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(result?.message || "Failed to update availability.");
+  }
+
+  return result;
+}
+
+export async function deleteVendorMenuItem(id: string) {
+  const token = await getVendorToken();
+
+  const response = await fetch(
+    `${BASE_URL}/api/vendor/menu-items/${id}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(result?.message || "Failed to delete menu item.");
   }
 
   return result;
