@@ -21,6 +21,7 @@ import {
 import { authClient } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { FcGoogle } from "react-icons/fc"
+import toast from "react-hot-toast";
 
 type AccountRole = "customer" | "vendor"
 
@@ -75,6 +76,7 @@ export default function SignUpPage() {
         email: email.trim(),
         password,
         image: image.trim() || undefined,
+        role,
         callbackURL: "/",
       })
 
@@ -82,6 +84,8 @@ export default function SignUpPage() {
         setError(signUpError.message || "Unable to create your account.")
         return
       }
+
+      toast.success("Signup successful!");
 
       // Redirect according to the selected account role
       const dashboardRoutes: Record<AccountRole, string> = {

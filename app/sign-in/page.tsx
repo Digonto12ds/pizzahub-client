@@ -18,6 +18,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { FcGoogle } from "react-icons/fc";
+import toast from "react-hot-toast";
 
 type UserRole = "customer" | "vendor" | "admin";
 
@@ -79,6 +80,8 @@ export default function SignInPage() {
         setError(signInError.message || "Invalid email or password.");
         return;
       }
+
+      toast.success("Login successful!");
 
       await redirectUser();
     } catch {
