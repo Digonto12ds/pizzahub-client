@@ -263,7 +263,7 @@ export default function BrowseMenuPage() {
               // Logged-out users must sign in before viewing details
               const viewDetailsHref = session
                 ? detailsHref
-                : `/signin?callbackURL=${encodeURIComponent(detailsHref)}`
+                : `/sign-in?callbackURL=${encodeURIComponent(detailsHref)}`
 
               return (
                 <Card

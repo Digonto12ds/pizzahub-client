@@ -21,6 +21,7 @@ export type FeaturedMenuItem = {
 
 export type MenuItem = {
   _id: string;
+  vendorId?: string; 
   itemName: string;
   category: string;
   description: string;
@@ -78,6 +79,31 @@ export async function getMenuItems(
 
   if (!response.ok) {
     throw new Error("Failed to fetch menu items");
+  }
+
+  return response.json();
+}
+
+
+export async function getMenuItemById(
+  id: string,
+  signal?: AbortSignal
+): Promise<MenuItem> {
+
+  const response = await fetch(`${BASE_URL}/menu/${id}`, {
+    signal,
+  });
+
+  if (!response.ok) {
+    if (response.status === 400) {
+      throw new Error("INVALID_ID");
+    }
+
+    if (response.status === 404) {
+      throw new Error("NOT_FOUND");
+    }
+
+    throw new Error("FETCH_ERROR");
   }
 
   return response.json();

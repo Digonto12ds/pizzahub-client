@@ -1,124 +1,120 @@
+"use client"
 
-"use client";
+import { useState, type FormEvent } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { useRouter } from "next/navigation"
 
-import { useState, type FormEvent } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { ArrowRight, Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react"
 
-import {
-  ArrowRight,
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  Loader2,
-} from "lucide-react";
+import { authClient } from "@/lib/auth-client"
+import { Button } from "@/components/ui/button"
+import { FcGoogle } from "react-icons/fc"
+import toast from "react-hot-toast"
 
-import { authClient } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { FcGoogle } from "react-icons/fc";
-import toast from "react-hot-toast";
-
-type UserRole = "customer" | "vendor" | "admin";
+type UserRole = "customer" | "vendor" | "admin"
 
 const dashboardRoutes: Record<UserRole, string> = {
   customer: "/customer-dashboard",
   vendor: "/vendor-dashboard",
   admin: "/admin-dashboard",
-};
+}
 
 export default function SignInPage() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [error, setError] = useState("")
 
   // Redirect user based on their actual authenticated role
   const redirectUser = async () => {
-    const { data: session, error: sessionError } =
-      await authClient.getSession();
+    const { data: session, error: sessionError } = await authClient.getSession()
 
     if (sessionError || !session) {
-      router.replace("/");
-      return;
+      router.replace("/")
+      return
     }
 
     const user = session.user as typeof session.user & {
-      role?: string;
-    };
-
-    const role = user.role as UserRole | undefined;
-
-    if (!role || !Object.hasOwn(dashboardRoutes, role)) {
-      router.replace("/");
-      return;
+      role?: string
     }
 
-    router.replace(dashboardRoutes[role]);
-    router.refresh();
-  };
+    const role = user.role as UserRole | undefined
+
+    if (!role || !Object.hasOwn(dashboardRoutes, role)) {
+      router.replace("/")
+      return
+    }
+
+    const params = new URLSearchParams(window.location.search)
+    const callbackURL = params.get("callbackURL")
+
+    const isValidCallback =
+      callbackURL?.startsWith("/") && !callbackURL.startsWith("//")
+
+    router.replace(
+      isValidCallback && callbackURL ? callbackURL : dashboardRoutes[role]
+    )
+    router.refresh()
+  }
 
   // Email and password login
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+    e.preventDefault()
+    setError("")
+    setLoading(true)
 
     try {
       const { error: signInError } = await authClient.signIn.email({
         email: email.trim(),
         password,
-      });
+      })
 
       if (signInError) {
-        setError(signInError.message || "Invalid email or password.");
-        return;
+        setError(signInError.message || "Invalid email or password.")
+        return
       }
 
-      toast.success("Login successful!");
+      toast.success("Login successful!")
 
-      await redirectUser();
+      await redirectUser()
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Something went wrong. Please try again.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Google login
   const handleGoogleSignIn = async () => {
-    setError("");
-    setGoogleLoading(true);
+    setError("")
+    setGoogleLoading(true)
 
     try {
       await authClient.signIn.social({
         provider: "google",
         callbackURL: "/auth-redirect",
-      });
+      })
     } catch {
-      setError("Google login failed. Please try again.");
-      setGoogleLoading(false);
+      setError("Google login failed. Please try again.")
+      setGoogleLoading(false)
     }
-  };
+  }
 
   return (
     <main className="relative flex min-h-[calc(100vh-80px)] items-center justify-center overflow-hidden bg-[#FFF9F0] px-4 py-12 sm:px-6">
-
       {/* Decorative Background */}
-      <div className="pointer-events-none absolute -left-32 -top-32 h-80 w-80 rounded-full bg-orange-200/40 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -right-32 h-80 w-80 rounded-full bg-red-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute -top-32 -left-32 h-80 w-80 rounded-full bg-orange-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 -bottom-32 h-80 w-80 rounded-full bg-red-200/40 blur-3xl" />
 
       <div className="relative z-10 grid w-full max-w-5xl overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-2xl shadow-orange-950/10 lg:grid-cols-2">
-
         {/* Left Side */}
         <div className="relative hidden min-h-155 flex-col justify-between overflow-hidden bg-[#35100A] p-10 lg:flex">
-
           <Image
             src="/Banner.png"
             alt="Fresh Pizza"
@@ -145,12 +141,11 @@ export default function SignInPage() {
           </div>
 
           <div className="relative z-10 max-w-md">
-
-            <span className="mb-5 inline-block rounded-full border border-orange-400/30 bg-orange-400/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-orange-300">
+            <span className="mb-5 inline-block rounded-full border border-orange-400/30 bg-orange-400/10 px-4 py-2 text-xs font-bold tracking-widest text-orange-300 uppercase">
               Welcome Back
             </span>
 
-            <h2 className="text-4xl font-black leading-tight text-white xl:text-5xl">
+            <h2 className="text-4xl leading-tight font-black text-white xl:text-5xl">
               Your Pizza
               <br />
               Journey
@@ -159,21 +154,18 @@ export default function SignInPage() {
             </h2>
 
             <p className="mt-6 text-sm leading-7 text-white/70">
-              Sign in to discover delicious pizzas, manage your
-              orders, and enjoy everything PizzaHub has to offer.
+              Sign in to discover delicious pizzas, manage your orders, and
+              enjoy everything PizzaHub has to offer.
             </p>
-
           </div>
 
           <p className="relative z-10 text-xs text-white/50">
             Fresh · Hot · Delicious — PizzaHub
           </p>
-
         </div>
 
         {/* Right Side */}
         <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
-
           {/* Mobile Logo */}
           <Link href="/" className="mb-8 flex items-center gap-3 lg:hidden">
             <Image
@@ -189,7 +181,7 @@ export default function SignInPage() {
           </Link>
 
           <div className="mb-8">
-            <p className="text-sm font-bold uppercase tracking-widest text-[#D36A32]">
+            <p className="text-sm font-bold tracking-widest text-[#D36A32] uppercase">
               Welcome Back
             </p>
 
@@ -229,7 +221,6 @@ export default function SignInPage() {
 
           {/* Sign In Form */}
           <form onSubmit={handleSignIn} className="space-y-5">
-
             {/* Email */}
             <div>
               <label className="mb-2 block text-sm font-semibold text-[#49372C]">
@@ -239,7 +230,7 @@ export default function SignInPage() {
               <div className="relative">
                 <Mail
                   size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#AD988A]"
+                  className="absolute top-1/2 left-4 -translate-y-1/2 text-[#AD988A]"
                 />
 
                 <input
@@ -249,7 +240,7 @@ export default function SignInPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="h-12 w-full rounded-xl border border-orange-100 bg-[#FFFCF8] pl-11 pr-4 text-sm text-[#49372C] outline-none transition focus:border-[#D93627] focus:ring-2 focus:ring-red-100"
+                  className="h-12 w-full rounded-xl border border-orange-100 bg-[#FFFCF8] pr-4 pl-11 text-sm text-[#49372C] transition outline-none focus:border-[#D93627] focus:ring-2 focus:ring-red-100"
                 />
               </div>
             </div>
@@ -263,7 +254,7 @@ export default function SignInPage() {
               <div className="relative">
                 <Lock
                   size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#AD988A]"
+                  className="absolute top-1/2 left-4 -translate-y-1/2 text-[#AD988A]"
                 />
 
                 <input
@@ -273,20 +264,16 @@ export default function SignInPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="h-12 w-full rounded-xl border border-orange-100 bg-[#FFFCF8] pl-11 pr-12 text-sm text-[#49372C] outline-none transition focus:border-[#D93627] focus:ring-2 focus:ring-red-100"
+                  className="h-12 w-full rounded-xl border border-orange-100 bg-[#FFFCF8] pr-12 pl-11 text-sm text-[#49372C] transition outline-none focus:border-[#D93627] focus:ring-2 focus:ring-red-100"
                 />
 
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#AD988A] hover:text-[#C93627]"
+                  className="absolute top-1/2 right-4 -translate-y-1/2 text-[#AD988A] hover:text-[#C93627]"
                 >
-                  {showPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
@@ -319,7 +306,6 @@ export default function SignInPage() {
                 </>
               )}
             </Button>
-
           </form>
 
           {/* Sign Up Link */}
@@ -332,10 +318,8 @@ export default function SignInPage() {
               Create Account
             </Link>
           </p>
-
         </div>
-
       </div>
     </main>
-  );
+  )
 }
