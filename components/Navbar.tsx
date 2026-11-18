@@ -148,14 +148,14 @@ export default function Navbar() {
           ) : (
             <>
               <Link
-                href="/signin"
+                href="/sign-in"
                 className="rounded-full px-5 py-2.5 text-sm font-bold text-[#49372C] transition hover:bg-orange-50"
               >
                 Sign In
               </Link>
 
               <Link
-                href="/signup"
+                href="/sign-up"
                 className="rounded-full bg-[#C93627] px-6 py-3 text-sm font-bold text-white shadow-md shadow-red-200 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#A92D21] hover:shadow-lg"
               >
                 Get Started <span className="ml-1">↗</span>
@@ -242,7 +242,7 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex flex-col gap-3">
-                <Link href="/signin" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)}>
                   <Button
                     variant="outline"
                     className="w-full rounded-full border-orange-200"
@@ -251,7 +251,7 @@ export default function Navbar() {
                   </Button>
                 </Link>
 
-                <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/sign-up" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full rounded-full bg-[#C93627] text-white hover:bg-[#A92D21]">
                     Get Started ↗
                   </Button>
