@@ -6,14 +6,7 @@ import { Check, Crown, Zap } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 
-type SubscriptionResponse = {
-  success: boolean;
-  subscriptionPlan: string;
-  subscriptionStatus: string;
-  subscriptionExpiresAt: string | null;
-  cancelAtPeriodEnd: boolean;
-  message?: string;
-};
+
 
 const plans = [
   {
@@ -151,7 +144,7 @@ export default function SubscriptionPlan() {
 
   if (isPending || subscriptionLoading) {
     return (
-      <div className="flex min-h-[300px] items-center justify-center">
+      <div className="flex min-h-75 items-center justify-center">
         <div className="size-10 animate-spin rounded-full border-4 border-gray-200 border-t-primary" />
       </div>
     );
