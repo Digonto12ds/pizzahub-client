@@ -171,7 +171,7 @@ export default function CheckoutPage() {
         </p>
 
         <Link
-          href="/signin"
+          href="/sign-in"
           className="rounded-lg bg-[#C93627] px-5 py-2.5 font-semibold text-white hover:bg-[#a92b20]"
         >
           Sign In
