@@ -1,37 +1,59 @@
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client"
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
 export type VendorOverview = {
-  totalMenuItems: number;
-  activeMenuItems: number;
-  pendingOrders: number;
-  acceptedOrders: number;
-  subscriptionPlan: string;
-};
-
+  totalMenuItems: number
+  activeMenuItems: number
+  pendingOrders: number
+  acceptedOrders: number
+  subscriptionPlan: string
+}
 
 export type VendorMenuItem = {
-  _id: string;
-  itemName: string;
-  category: string;
-  description: string;
-  price: number;
-  location: string;
-  images: string[];
-  status: "pending" | "approved" | "rejected";
-  isActive: boolean;
-  createdAt: string;
-  updatedAt?: string;
-};
+  _id: string
+  itemName: string
+  category: string
+  description: string
+  price: number
+  location: string
+  images: string[]
+  status: "pending" | "approved" | "rejected"
+  isActive: boolean
+  createdAt: string
+  updatedAt?: string
+}
 
+export type VendorOrder = {
+  _id: string
+  itemId: string
+  vendorId: string
+  customerId: string
+  deliveryDate: string
+  deliveryAddress: string
+  message?: string
+  status: "Pending" | "Accepted" | "Rejected" | "Cancelled"
+  createdAt: string
+
+  item: {
+    itemName: string
+    images: string[]
+    price: number
+    category: string
+  } | null
+
+  customer: {
+    name: string
+    email: string
+    image: string
+  } | null
+}
 
 export async function getVendorOverview(): Promise<VendorOverview> {
-  const { data, error } = await authSession();
+  const { data, error } = await authClient.getSession();
 
   if (error || !data?.session?.token) {
-    throw new Error("Please sign in again.");
+    throw new Error("Please sign in again.")
   }
 
   const response = await fetch(`${BASE_URL}/api/vendor/overview`, {
@@ -39,28 +61,22 @@ export async function getVendorOverview(): Promise<VendorOverview> {
       Authorization: `Bearer ${data.session.token}`,
     },
     cache: "no-store",
-  });
+  })
 
   if (!response.ok) {
-    throw new Error("Failed to load vendor overview.");
+    throw new Error("Failed to load vendor overview.")
   }
 
-  return response.json();
+  return response.json()
 }
-
-async function authSession() {
-  const { authClient } = await import("@/lib/auth-client");
-  return authClient.getSession();
-}
-
 
 export async function addVendorMenuItem(formData: FormData) {
-  const { data, error } = await authClient.getSession();
+  const { data, error } = await authClient.getSession()
 
-  const token = data?.session?.token;
+  const token = data?.session?.token
 
   if (error || !token) {
-    throw new Error("Please sign in again.");
+    throw new Error("Please sign in again.")
   }
 
   const response = await fetch(`${BASE_URL}/api/vendor/menu-items`, {
@@ -69,81 +85,72 @@ export async function addVendorMenuItem(formData: FormData) {
       Authorization: `Bearer ${token}`,
     },
     body: formData,
-  });
+  })
 
-  const result = await response.json().catch(() => null);
+  const result = await response.json().catch(() => null)
 
   if (!response.ok) {
-    throw new Error(
-      result?.message || "Failed to add menu item."
-    );
+    throw new Error(result?.message || "Failed to add menu item.")
   }
 
-  return result;
+  return result
 }
 
-
 async function getVendorToken() {
-  const { data, error } = await authClient.getSession();
-  const token = data?.session?.token;
+  const { data, error } = await authClient.getSession()
+  const token = data?.session?.token
 
   if (error || !token) {
-    throw new Error("Please sign in again.");
+    throw new Error("Please sign in again.")
   }
 
-  return token;
+  return token
 }
 
 export async function getMyMenuItems(): Promise<VendorMenuItem[]> {
-  const token = await getVendorToken();
+  const token = await getVendorToken()
 
   const response = await fetch(`${BASE_URL}/api/vendor/menu-items`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
     cache: "no-store",
-  });
+  })
 
-  const result = await response.json().catch(() => null);
+  const result = await response.json().catch(() => null)
 
   if (!response.ok) {
-    throw new Error(result?.message || "Failed to load menu items.");
+    throw new Error(result?.message || "Failed to load menu items.")
   }
 
-  return result;
+  return result
 }
 
-export async function updateVendorMenuItem(
-  id: string,
-  formData: FormData
-) {
-  const token = await getVendorToken();
+export async function updateVendorMenuItem(id: string, formData: FormData) {
+  const token = await getVendorToken()
 
-  const response = await fetch(
-    `${BASE_URL}/api/vendor/menu-items/${id}`,
-    {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    }
-  );
+  const response = await fetch(`${BASE_URL}/api/vendor/menu-items/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  })
 
-  const result = await response.json().catch(() => null);
+  const result = await response.json().catch(() => null)
 
   if (!response.ok) {
-    throw new Error(result?.message || "Failed to update menu item.");
+    throw new Error(result?.message || "Failed to update menu item.")
   }
 
-  return result;
+  return result
 }
 
 export async function updateMenuItemAvailability(
   id: string,
   isActive: boolean
 ) {
-  const token = await getVendorToken();
+  const token = await getVendorToken()
 
   const response = await fetch(
     `${BASE_URL}/api/vendor/menu-items/${id}/availability`,
@@ -155,35 +162,87 @@ export async function updateMenuItemAvailability(
       },
       body: JSON.stringify({ isActive }),
     }
-  );
+  )
 
-  const result = await response.json().catch(() => null);
+  const result = await response.json().catch(() => null)
 
   if (!response.ok) {
-    throw new Error(result?.message || "Failed to update availability.");
+    throw new Error(result?.message || "Failed to update availability.")
   }
 
-  return result;
+  return result
 }
 
 export async function deleteVendorMenuItem(id: string) {
-  const token = await getVendorToken();
+  const token = await getVendorToken()
 
-  const response = await fetch(
-    `${BASE_URL}/api/vendor/menu-items/${id}`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const response = await fetch(`${BASE_URL}/api/vendor/menu-items/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
 
-  const result = await response.json().catch(() => null);
+  const result = await response.json().catch(() => null)
 
   if (!response.ok) {
-    throw new Error(result?.message || "Failed to delete menu item.");
+    throw new Error(result?.message || "Failed to delete menu item.")
   }
 
-  return result;
+  return result
 }
+
+export async function getVendorOrders(): Promise<VendorOrder[]> {
+  const { data, error } = await authClient.getSession()
+  const token = data?.session?.token
+
+  if (error || !token) {
+    throw new Error("Please sign in again.")
+  }
+
+  const response = await fetch(`${BASE_URL}/api/vendor/orders`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  })
+
+  const result = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new Error(result?.message || "Failed to load orders.")
+  }
+
+  return result
+}
+
+export async function updateVendorOrderStatus(
+  id: string,
+  status: "Accepted" | "Rejected"
+) {
+  const { data, error } = await authClient.getSession()
+  const token = data?.session?.token
+
+  if (error || !token) {
+    throw new Error("Please sign in again.")
+  }
+
+  const response = await fetch(`${BASE_URL}/api/vendor/orders/${id}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status }),
+  })
+
+  const result = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new Error(result?.message || "Failed to update order.")
+  }
+
+  return result
+}
+
+
