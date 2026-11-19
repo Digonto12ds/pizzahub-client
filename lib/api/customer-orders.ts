@@ -73,7 +73,17 @@ const getAuthHeaders = async () => {
 }
 
 const handleResponse = async (response: Response) => {
-  const data = await response.json()
+  const text = await response.text()
+
+  let data
+
+  try {
+    data = JSON.parse(text)
+  } catch {
+    throw new Error(
+      `Server returned an invalid response (${response.status}). Check the backend API URL and route.`,
+    )
+  }
 
   if (!response.ok) {
     throw new Error(data.message || "Something went wrong.")
@@ -135,6 +145,27 @@ export const cancelCustomerOrder = async (id: string) => {
   const response = await fetch(`${BASE_URL}/api/customer/orders/${id}/cancel`, {
     method: "PATCH",
     headers,
+  })
+
+  return handleResponse(response)
+}
+
+export interface CreateCustomerOrderData {
+  menuItemId: string
+  quantity: number
+  deliveryAddress: string
+  deliveryDate: string
+}
+
+export const createCustomerOrder = async (
+  orderData: CreateCustomerOrderData,
+) => {
+  const headers = await getAuthHeaders()
+
+  const response = await fetch(`${BASE_URL}/api/customer/orders`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(orderData),
   })
 
   return handleResponse(response)

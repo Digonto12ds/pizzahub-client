@@ -13,7 +13,7 @@ import {
 } from "@/lib/api/customer-orders"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent} from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
@@ -121,29 +121,26 @@ export default function CustomerDashboard() {
 
   const [cancelling, setCancelling] = useState(false)
   const [notice, setNotice] = useState("")
+  const [cancelError, setCancelError] = useState("")
 
- const loadDashboard = useCallback(async () => {
-  try {
-    setLoading(true)
-    setError("")
+  const loadDashboard = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError("")
 
-    const [overviewData, ordersData] = await Promise.all([
-      getCustomerOverview(),
-      getCustomerOrders(),
-    ])
+      const [overviewData, ordersData] = await Promise.all([
+        getCustomerOverview(),
+        getCustomerOrders(),
+      ])
 
-    setOverview(overviewData)
-    setOrders(ordersData)
-  } catch (err) {
-    setError(
-      err instanceof Error
-        ? err.message
-        : "Failed to load dashboard."
-    )
-  } finally {
-    setLoading(false)
-  }
-}, [])
+      setOverview(overviewData)
+      setOrders(ordersData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load dashboard.")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -154,11 +151,11 @@ export default function CustomerDashboard() {
   }, [loadDashboard])
 
   const handleCancelOrder = async () => {
-    if (!cancelOrderId) return
+    if (!cancelOrderId || cancelling) return
 
     try {
       setCancelling(true)
-      setNotice("")
+      setCancelError("")
 
       const result = await cancelCustomerOrder(cancelOrderId)
 
@@ -168,7 +165,9 @@ export default function CustomerDashboard() {
 
       await loadDashboard()
     } catch (err) {
-      setNotice(err instanceof Error ? err.message : "Failed to cancel order.")
+      setCancelError(
+        err instanceof Error ? err.message : "Failed to cancel order."
+      )
     } finally {
       setCancelling(false)
     }
@@ -404,7 +403,7 @@ export default function CustomerDashboard() {
 
                           <p className="flex items-start gap-2 sm:col-span-2">
                             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#C93627]" />
-                            <span className="break-words">
+                            <span className="wrap-break-words">
                               {order.deliveryAddress || "No address provided"}
                             </span>
                           </p>
@@ -430,7 +429,10 @@ export default function CustomerDashboard() {
                               <Button
                                 size="sm"
                                 variant="destructive"
-                                onClick={() => setCancelOrderId(order._id)}
+                                onClick={() => {
+                                  setCancelError("")
+                                  setCancelOrderId(order._id)
+                                }}
                               >
                                 <X className="mr-2 h-4 w-4" />
                                 Cancel
@@ -574,6 +576,11 @@ export default function CustomerDashboard() {
               Are you sure you want to cancel this order? This action cannot be
               undone.
             </AlertDialogDescription>
+            {cancelError && (
+              <p className="mt-2 text-sm font-medium text-red-600">
+                {cancelError}
+              </p>
+            )}
           </AlertDialogHeader>
 
           <AlertDialogFooter>
