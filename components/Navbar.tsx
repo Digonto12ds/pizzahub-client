@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 
@@ -17,6 +18,41 @@ import { authClient } from "@/lib/auth-client"
 
 import { Button } from "@/components/ui/button"
 
+function ProfileAvatar({
+  image,
+  name,
+  size = 36,
+}: {
+  image?: string | null
+  name?: string | null
+  size?: number
+}) {
+  const [imageError, setImageError] = useState(false)
+
+  if (!image || imageError) {
+    return (
+      <div
+        style={{ width: size, height: size }}
+        className="flex shrink-0 items-center justify-center rounded-full bg-[#C93627] text-sm font-bold text-white"
+      >
+        {name?.charAt(0).toUpperCase() || "U"}
+      </div>
+    )
+  }
+
+  return (
+    <Image
+      src={image}
+      alt={name || "User"}
+      width={size}
+      height={size}
+      unoptimized
+      onError={() => setImageError(true)}
+      className="shrink-0 rounded-full object-cover"
+    />
+  )
+}
+
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -28,6 +64,8 @@ export default function Navbar() {
 
   const user = session?.user
 
+  console.log("Session:", session);
+console.log("User image:", user?.image);
   // Get user role
   const role = (user as (typeof user & { role?: string }) | undefined)?.role
 
@@ -114,9 +152,11 @@ export default function Navbar() {
 
               <div className="group relative">
                 <button className="flex items-center gap-2 rounded-full border border-orange-100 bg-white py-1.5 pr-3 pl-1.5 transition hover:border-orange-300">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#C93627] text-sm font-bold text-white">
-                    {user.name?.charAt(0).toUpperCase() || "U"}
-                  </div>
+                  <ProfileAvatar
+  image={user.image}
+  name={user.name}
+  size={36}
+/>
 
                   <span className="max-w-24 truncate text-sm font-semibold text-[#49372C]">
                     {user.name}
@@ -200,9 +240,11 @@ export default function Navbar() {
             ) : user ? (
               <>
                 <div className="flex items-center gap-3 rounded-xl bg-orange-50 p-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#C93627] font-bold text-white">
-                    {user.name?.charAt(0).toUpperCase() || "U"}
-                  </div>
+                  <ProfileAvatar
+  image={user.image}
+  name={user.name}
+  size={40}
+/>
 
                   <div>
                     <p className="text-sm font-bold text-[#49372C]">
