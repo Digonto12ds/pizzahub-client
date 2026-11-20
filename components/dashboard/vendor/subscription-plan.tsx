@@ -2,11 +2,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Crown, Zap } from "lucide-react";
+import { Check, Crown, Zap, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
+
 import { authClient } from "@/lib/auth-client";
 
-
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 const plans = [
   {
@@ -43,11 +45,15 @@ export default function SubscriptionPlan() {
   const [loading, setLoading] = useState(false);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
+const isPageLoading = isPending || (!!session && subscriptionLoading);
+
   const isPremium = currentPlan.toLowerCase() === "premium";
 
-  // Fetch current subscription information from backend
+  // Fetch current subscription
  useEffect(() => {
   if (isPending || !session) return;
+
+  let active = true;
 
   const fetchSubscription = async () => {
     try {
@@ -59,42 +65,57 @@ export default function SubscriptionPlan() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/api/vendor/subscription`,
+        `${API_BASE_URL}/api/vendor/subscription`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          cache: "no-store",
         }
       );
 
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (!response.ok) {
         throw new Error(
-          result.message || "Failed to load subscription."
+          result?.message || "Failed to load subscription."
         );
       }
 
-      setCurrentPlan(result.subscriptionPlan);
-      setSubscriptionStatus(result.subscriptionStatus);
-      setSubscriptionExpiresAt(result.subscriptionExpiresAt);
-      setCancelAtPeriodEnd(result.cancelAtPeriodEnd);
+      if (active) {
+        setCurrentPlan(result.subscriptionPlan || "free");
+        setSubscriptionStatus(result.subscriptionStatus || "inactive");
+        setSubscriptionExpiresAt(
+          result.subscriptionExpiresAt || null
+        );
+        setCancelAtPeriodEnd(Boolean(result.cancelAtPeriodEnd));
+      }
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to load subscription."
-      );
+      if (active) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to load subscription."
+        );
+      }
     } finally {
-      setSubscriptionLoading(false);
+      if (active) {
+        setSubscriptionLoading(false);
+      }
     }
   };
 
-  fetchSubscription();
+  void fetchSubscription();
+
+  return () => {
+    active = false;
+  };
 }, [isPending, session]);
 
   // Create Stripe checkout session
   const handleUpgrade = async () => {
+    if (loading || isPremium) return;
+
     try {
       setLoading(true);
 
@@ -106,10 +127,7 @@ export default function SubscriptionPlan() {
       }
 
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_BASE_URL ||
-          "http://localhost:5000"
-        }/api/vendor/create-checkout-session`,
+        `${API_BASE_URL}/api/vendor/create-checkout-session`,
         {
           method: "POST",
           headers: {
@@ -119,42 +137,48 @@ export default function SubscriptionPlan() {
         }
       );
 
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (!response.ok) {
         throw new Error(
-          result.message || "Failed to create checkout session."
+          result?.message || "Failed to create checkout session."
         );
       }
 
-      if (!result.url) {
+      if (!result?.url) {
         throw new Error("Stripe checkout URL was not returned.");
       }
 
-      window.location.href = result.url;
+      window.location.assign(result.url);
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
           : "Something went wrong."
       );
+
       setLoading(false);
     }
   };
 
-  if (isPending || subscriptionLoading) {
+  // Loading state
+  if (isPageLoading) {
     return (
-      <div className="flex min-h-75 items-center justify-center">
-        <div className="size-10 animate-spin rounded-full border-4 border-gray-200 border-t-primary" />
+      <div className="flex min-h-75 items-center justify-center bg-[#faf7f2]">
+        <Loader2 className="size-10 animate-spin text-[#C93627]" />
       </div>
     );
   }
 
+  // Not authenticated
   if (!session) {
     return (
-      <div className="rounded-xl border p-8 text-center">
-        <h2 className="text-xl font-semibold">Please sign in</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+      <div className="rounded-2xl border border-[#f0e3d8] bg-white p-8 text-center text-[#35100A]">
+        <h2 className="text-xl font-semibold text-[#35100A]">
+          Please sign in
+        </h2>
+
+        <p className="mt-2 text-sm text-[#786b62]">
           Sign in to view your subscription information.
         </p>
       </div>
@@ -162,21 +186,27 @@ export default function SubscriptionPlan() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Page heading */}
+    <div className="min-h-screen space-y-8 bg-[#faf7f2] text-[#35100A]">
+
+      {/* Page Heading */}
       <div>
-        <h1 className="text-2xl font-bold">Subscription Plans</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <h1 className="text-2xl font-bold text-[#35100A] sm:text-3xl">
+          Subscription Plans
+        </h1>
+
+        <p className="mt-2 text-sm text-[#786b62]">
           Choose the right plan for your restaurant.
         </p>
       </div>
 
-      {/* Current plan */}
-      <div className="rounded-2xl border bg-card p-6">
-        <p className="text-sm text-muted-foreground">Your Current Plan</p>
+      {/* Current Plan */}
+      <div className="rounded-2xl border border-[#f0e3d8] bg-white p-6 text-[#35100A] shadow-sm">
+        <p className="text-sm text-[#786b62]">
+          Your Current Plan
+        </p>
 
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h2 className="text-2xl font-bold capitalize">
+          <h2 className="text-2xl font-bold capitalize text-[#35100A]">
             {currentPlan}
           </h2>
 
@@ -191,10 +221,12 @@ export default function SubscriptionPlan() {
           )}
         </div>
 
+        {/* Premium Information */}
         {isPremium && (
           <div className="mt-5 rounded-xl border border-green-200 bg-green-50 p-4">
             <div className="flex items-center gap-2">
               <Crown className="size-5 text-green-700" />
+
               <span className="font-semibold text-green-800">
                 Premium Subscription Active
               </span>
@@ -207,7 +239,9 @@ export default function SubscriptionPlan() {
             {subscriptionExpiresAt && (
               <p className="mt-1 text-sm text-green-700">
                 Expires on:{" "}
-                {new Date(subscriptionExpiresAt).toLocaleDateString()}
+                {new Date(
+                  subscriptionExpiresAt
+                ).toLocaleDateString("en-BD")}
               </p>
             )}
 
@@ -220,7 +254,7 @@ export default function SubscriptionPlan() {
         )}
       </div>
 
-      {/* Available plans */}
+      {/* Available Plans */}
       <div className="grid gap-6 md:grid-cols-2">
         {plans.map((plan) => {
           const isCurrentPlan =
@@ -231,55 +265,67 @@ export default function SubscriptionPlan() {
           return (
             <div
               key={plan.name}
-              className={`relative flex flex-col rounded-2xl border p-6 ${
+              className={`relative flex flex-col rounded-2xl border bg-white p-6 text-[#35100A] ${
                 isPremiumPlan
-                  ? "border-primary shadow-lg"
-                  : "border-border"
+                  ? "border-[#C93627] shadow-lg shadow-orange-100"
+                  : "border-[#f0e3d8] shadow-sm"
               }`}
             >
+              {/* Recommended Label */}
               {isPremiumPlan && (
-                <div className="absolute -top-3 right-5 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground">
+                <div className="absolute -top-3 right-5 rounded-full bg-[#C93627] px-4 py-1 text-xs font-semibold text-white shadow-sm">
                   Recommended
                 </div>
               )}
 
+              {/* Plan Name */}
               <div className="flex items-center gap-2">
                 {isPremiumPlan ? (
-                  <Crown className="size-6 text-primary" />
+                  <Crown className="size-6 text-[#C93627]" />
                 ) : (
-                  <Zap className="size-6 text-muted-foreground" />
+                  <Zap className="size-6 text-[#9A8270]" />
                 )}
 
-                <h2 className="text-xl font-bold">{plan.name}</h2>
+                <h2 className="text-xl font-bold text-[#35100A]">
+                  {plan.name}
+                </h2>
               </div>
 
+              {/* Price */}
               <div className="mt-5">
-                <span className="text-4xl font-bold">{plan.price}</span>
+                <span className="text-4xl font-bold text-[#35100A]">
+                  {plan.price}
+                </span>
+
                 {isPremiumPlan && (
-                  <span className="ml-2 text-sm text-muted-foreground">
+                  <span className="ml-2 text-sm text-[#786b62]">
                     / month
                   </span>
                 )}
               </div>
 
-              <p className="mt-3 text-sm text-muted-foreground">
+              {/* Description */}
+              <p className="mt-3 text-sm text-[#786b62]">
                 {plan.description}
               </p>
 
-              <div className="my-6 h-px bg-border" />
+              <div className="my-6 h-px bg-[#f0e3d8]" />
 
+              {/* Features */}
               <ul className="flex-1 space-y-4">
                 {plan.features.map((feature) => (
                   <li
                     key={feature}
-                    className="flex items-center gap-3 text-sm"
+                    className="flex items-center gap-3 text-sm text-[#49372C]"
                   >
                     <Check className="size-4 shrink-0 text-green-600" />
+
                     <span>{feature}</span>
                   </li>
                 ))}
               </ul>
 
+              {/* Plan Button */}
               <button
                 type="button"
                 onClick={handleUpgrade}
@@ -289,21 +335,26 @@ export default function SubscriptionPlan() {
                   subscriptionLoading ||
                   !isPremiumPlan
                 }
-                className={`mt-8 w-full rounded-lg px-5 py-3 text-sm font-semibold transition ${
+                className={`mt-8 flex w-full items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition ${
                   isPremiumPlan
-                    ? "bg-primary text-primary-foreground hover:opacity-90"
-                    : "cursor-not-allowed bg-muted text-muted-foreground"
+                    ? "bg-[#C93627] text-white hover:bg-[#A92D21]"
+                    : "cursor-not-allowed border border-[#e8d5c9] bg-[#f5f0eb] text-[#9A8270]"
                 } disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                {isCurrentPlan
-                  ? "Current Plan"
-                  : isPremium
-                    ? "Already Premium"
-                    : loading
-                      ? "Redirecting..."
-                      : isPremiumPlan
-                        ? "Upgrade to Premium"
-                        : "Free Plan"}
+                {loading && isPremiumPlan ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Redirecting...
+                  </>
+                ) : isCurrentPlan ? (
+                  "Current Plan"
+                ) : isPremium ? (
+                  "Already Premium"
+                ) : isPremiumPlan ? (
+                  "Upgrade to Premium"
+                ) : (
+                  "Free Plan"
+                )}
               </button>
             </div>
           );

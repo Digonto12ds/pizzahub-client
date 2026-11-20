@@ -1,6 +1,9 @@
+
 import { authClient } from "@/lib/auth-client"
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+
 
 export type VendorOverview = {
   totalMenuItems: number
@@ -49,55 +52,11 @@ export type VendorOrder = {
   } | null
 }
 
-export async function getVendorOverview(): Promise<VendorOverview> {
-  const { data, error } = await authClient.getSession();
 
-  if (error || !data?.session?.token) {
-    throw new Error("Please sign in again.")
-  }
-
-  const response = await fetch(`${BASE_URL}/api/vendor/overview`, {
-    headers: {
-      Authorization: `Bearer ${data.session.token}`,
-    },
-    cache: "no-store",
-  })
-
-  if (!response.ok) {
-    throw new Error("Failed to load vendor overview.")
-  }
-
-  return response.json()
-}
-
-export async function addVendorMenuItem(formData: FormData) {
-  const { data, error } = await authClient.getSession()
-
-  const token = data?.session?.token
-
-  if (error || !token) {
-    throw new Error("Please sign in again.")
-  }
-
-  const response = await fetch(`${BASE_URL}/api/vendor/menu-items`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  })
-
-  const result = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(result?.message || "Failed to add menu item.")
-  }
-
-  return result
-}
-
+// Get logged-in vendor token
 async function getVendorToken() {
   const { data, error } = await authClient.getSession()
+
   const token = data?.session?.token
 
   if (error || !token) {
@@ -107,6 +66,48 @@ async function getVendorToken() {
   return token
 }
 
+// Handle API response
+async function getApiResult(response: Response) {
+  const result = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new Error(result?.message || "Something went wrong.")
+  }
+
+  return result
+}
+
+
+
+export async function getVendorOverview(): Promise<VendorOverview> {
+  const token = await getVendorToken()
+
+  const response = await fetch(`${BASE_URL}/api/vendor/overview`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  })
+
+  return getApiResult(response)
+}
+
+// Add menu item
+export async function addVendorMenuItem(formData: FormData) {
+  const token = await getVendorToken()
+
+  const response = await fetch(`${BASE_URL}/api/vendor/menu-items`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  })
+
+  return getApiResult(response)
+}
+
+// Get logged-in vendor's menu items
 export async function getMyMenuItems(): Promise<VendorMenuItem[]> {
   const token = await getVendorToken()
 
@@ -117,16 +118,14 @@ export async function getMyMenuItems(): Promise<VendorMenuItem[]> {
     cache: "no-store",
   })
 
-  const result = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(result?.message || "Failed to load menu items.")
-  }
-
-  return result
+  return getApiResult(response)
 }
 
-export async function updateVendorMenuItem(id: string, formData: FormData) {
+// Update menu item
+export async function updateVendorMenuItem(
+  id: string,
+  formData: FormData
+) {
   const token = await getVendorToken()
 
   const response = await fetch(`${BASE_URL}/api/vendor/menu-items/${id}`, {
@@ -137,15 +136,10 @@ export async function updateVendorMenuItem(id: string, formData: FormData) {
     body: formData,
   })
 
-  const result = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(result?.message || "Failed to update menu item.")
-  }
-
-  return result
+  return getApiResult(response)
 }
 
+// Update menu item availability
 export async function updateMenuItemAvailability(
   id: string,
   isActive: boolean
@@ -164,15 +158,10 @@ export async function updateMenuItemAvailability(
     }
   )
 
-  const result = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(result?.message || "Failed to update availability.")
-  }
-
-  return result
+  return getApiResult(response)
 }
 
+// Delete menu item
 export async function deleteVendorMenuItem(id: string) {
   const token = await getVendorToken()
 
@@ -183,22 +172,12 @@ export async function deleteVendorMenuItem(id: string) {
     },
   })
 
-  const result = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(result?.message || "Failed to delete menu item.")
-  }
-
-  return result
+  return getApiResult(response)
 }
 
+// Get vendor orders
 export async function getVendorOrders(): Promise<VendorOrder[]> {
-  const { data, error } = await authClient.getSession()
-  const token = data?.session?.token
-
-  if (error || !token) {
-    throw new Error("Please sign in again.")
-  }
+  const token = await getVendorToken()
 
   const response = await fetch(`${BASE_URL}/api/vendor/orders`, {
     headers: {
@@ -207,25 +186,15 @@ export async function getVendorOrders(): Promise<VendorOrder[]> {
     cache: "no-store",
   })
 
-  const result = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(result?.message || "Failed to load orders.")
-  }
-
-  return result
+  return getApiResult(response)
 }
 
+// Update order status
 export async function updateVendorOrderStatus(
   id: string,
   status: "Accepted" | "Rejected"
 ) {
-  const { data, error } = await authClient.getSession()
-  const token = data?.session?.token
-
-  if (error || !token) {
-    throw new Error("Please sign in again.")
-  }
+  const token = await getVendorToken()
 
   const response = await fetch(`${BASE_URL}/api/vendor/orders/${id}/status`, {
     method: "PATCH",
@@ -236,13 +205,5 @@ export async function updateVendorOrderStatus(
     body: JSON.stringify({ status }),
   })
 
-  const result = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(result?.message || "Failed to update order.")
-  }
-
-  return result
+  return getApiResult(response)
 }
-
-

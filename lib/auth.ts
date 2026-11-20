@@ -20,6 +20,22 @@ export const auth = betterAuth({
       defaultValue: "customer",
       input: true,
     },
+        subscriptionPlan: {
+      type: "string",
+      required: false,
+      defaultValue: "free",
+      input: false,
+      returned: true,
+    },
+
+    // ADDED: Subscription Status
+    subscriptionStatus: {
+      type: "string",
+      required: false,
+      defaultValue: "inactive",
+      input: false,
+      returned: true,
+    },
   },
 },
   socialProviders: {

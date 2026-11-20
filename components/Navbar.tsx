@@ -42,14 +42,18 @@ function ProfileAvatar({
 
   return (
     <Image
-      src={image}
-      alt={name || "User"}
-      width={size}
-      height={size}
-      unoptimized
-      onError={() => setImageError(true)}
-      className="shrink-0 rounded-full object-cover"
-    />
+    src={image}
+    alt={name || "User"}
+    width={size}
+    height={size}
+    unoptimized
+    onError={() => setImageError(true)}
+    style={{
+      width: `${size}px`,
+      height: `${size}px`,
+    }}
+    className="shrink-0 rounded-full object-cover"
+  />
   )
 }
 
