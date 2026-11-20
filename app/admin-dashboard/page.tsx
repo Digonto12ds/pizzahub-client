@@ -9,23 +9,13 @@ import {
   UtensilsCrossed,
   Clock,
   CreditCard,
-  RefreshCw,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 
-import { authClient } from "@/lib/auth-client"
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
-
-type DashboardStats = {
-  totalUsers: number
-  totalVendors: number
-  totalCustomers: number
-  totalMenuItems: number
-  pendingMenuItems: number
-  totalTransactions: number
-}
+import {
+  getAdminOverview,
+  type DashboardStats,
+} from "@/lib/api/admin"
 
 const initialStats: DashboardStats = {
   totalUsers: 0,
@@ -36,139 +26,207 @@ const initialStats: DashboardStats = {
   totalTransactions: 0,
 }
 
+const statCards = [
+  {
+    title: "Total Registered Users",
+    key: "totalUsers" as const,
+    icon: Users,
+    iconBg: "#DBEAFE",
+    iconColor: "#2563EB",
+  },
+  {
+    title: "Total Vendors",
+    key: "totalVendors" as const,
+    icon: Store,
+    iconBg: "#EDE9FE",
+    iconColor: "#7C3AED",
+  },
+  {
+    title: "Total Customers",
+    key: "totalCustomers" as const,
+    icon: UserRound,
+    iconBg: "#DCFCE7",
+    iconColor: "#16A34A",
+  },
+  {
+    title: "Total Menu Items",
+    key: "totalMenuItems" as const,
+    icon: UtensilsCrossed,
+    iconBg: "#FFEDD5",
+    iconColor: "#EA580C",
+  },
+  {
+    title: "Pending Menu Items",
+    key: "pendingMenuItems" as const,
+    icon: Clock,
+    iconBg: "#FEF3C7",
+    iconColor: "#D97706",
+  },
+  {
+    title: "Total Transactions",
+    key: "totalTransactions" as const,
+    icon: CreditCard,
+    iconBg: "#FCE7F3",
+    iconColor: "#DB2777",
+  },
+]
+
+function StatsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {statCards.map((card) => (
+        <div
+          key={card.key}
+          className="rounded-2xl border p-5 shadow-sm"
+          style={{
+            backgroundColor: "#FFFFFF",
+            borderColor: "#F0E3D8",
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div
+              className="size-12 rounded-xl"
+              style={{ backgroundColor: "#F3ECE6" }}
+            />
+
+            <div
+              className="h-4 w-20 rounded"
+              style={{ backgroundColor: "#F3ECE6" }}
+            />
+          </div>
+
+          <div
+            className="mt-5 h-4 w-40 rounded"
+            style={{ backgroundColor: "#F3ECE6" }}
+          />
+
+          <div
+            className="mt-3 h-8 w-24 rounded"
+            style={{ backgroundColor: "#EEE5DC" }}
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats>(initialStats)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchOverview = async () => {
       try {
-        const { data, error } = await authClient.getSession()
-        const token = data?.session?.token
+        const data = await getAdminOverview()
 
-        if (error || !token) {
-          throw new Error("Please sign in again.")
+        if (isMounted) {
+          setStats(data)
         }
-
-        const response = await fetch(
-          `${API_URL}/api/admin/overview`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-
-        const result = await response.json()
-
-        if (!response.ok) {
-          throw new Error(
-            result.message || "Failed to load dashboard."
+      } catch (error) {
+        if (isMounted) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Something went wrong."
           )
         }
-
-        setStats(result.stats)
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Something went wrong."
-        )
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchOverview()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
-  const statCards = [
-    {
-      title: "Total Registered Users",
-      value: stats.totalUsers,
-      icon: Users,
-      color: "bg-blue-100 text-blue-600",
-    },
-    {
-      title: "Total Vendors",
-      value: stats.totalVendors,
-      icon: Store,
-      color: "bg-purple-100 text-purple-600",
-    },
-    {
-      title: "Total Customers",
-      value: stats.totalCustomers,
-      icon: UserRound,
-      color: "bg-green-100 text-green-600",
-    },
-    {
-      title: "Total Menu Items",
-      value: stats.totalMenuItems,
-      icon: UtensilsCrossed,
-      color: "bg-orange-100 text-orange-600",
-    },
-    {
-      title: "Pending Menu Items",
-      value: stats.pendingMenuItems,
-      icon: Clock,
-      color: "bg-yellow-100 text-yellow-600",
-    },
-    {
-      title: "Total Transactions",
-      value: stats.totalTransactions,
-      icon: CreditCard,
-      color: "bg-pink-100 text-pink-600",
-    },
-  ]
-
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div
+      className="min-h-full space-y-6 p-4 sm:p-6"
+      style={{
+        backgroundColor: "#FFF9F0",
+        color: "#35100A",
+      }}
+    >
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">
+        <p
+          className="mb-2 text-sm font-semibold"
+          style={{ color: "#C93627" }}
+        >
+          DASHBOARD
+        </p>
+
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
           Admin Overview
         </h1>
 
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p
+          className="mt-2 max-w-2xl text-sm leading-6"
+          style={{ color: "#786B62" }}
+        >
           Welcome to your PizzaHub admin dashboard.
           Here is an overview of your platform.
         </p>
       </div>
 
-      {/* Statistics Cards */}
+      {/* Statistics */}
       {loading ? (
-        <div className="flex min-h-60 items-center justify-center">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <RefreshCw className="size-5 animate-spin" />
-            Loading dashboard statistics...
-          </div>
-        </div>
+        <StatsSkeleton />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {statCards.map((card) => {
             const Icon = card.icon
 
             return (
               <div
-                key={card.title}
-                className="rounded-xl border bg-card p-5 shadow-sm"
+                key={card.key}
+                className="min-w-0 rounded-2xl border p-5 shadow-sm transition-shadow duration-200 hover:shadow-md sm:p-6"
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  borderColor: "#F0E3D8",
+                  color: "#35100A",
+                }}
               >
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p
+                      className="text-sm font-medium leading-5"
+                      style={{ color: "#786B62" }}
+                    >
                       {card.title}
                     </p>
 
-                    <h2 className="mt-3 text-3xl font-bold">
-                      {card.value.toLocaleString()}
+                    <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+                      {Number(stats[card.key] ?? 0).toLocaleString()}
                     </h2>
                   </div>
 
                   <div
-                    className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${card.color}`}
+                    className="flex size-12 shrink-0 items-center justify-center rounded-xl"
+                    style={{
+                      backgroundColor: card.iconBg,
+                      color: card.iconColor,
+                    }}
                   >
                     <Icon className="size-6" />
                   </div>
+                </div>
+
+                <div
+                  className="mt-5 h-1 w-full overflow-hidden rounded-full"
+                  style={{ backgroundColor: "#F5EEE8" }}
+                >
+                  <div
+                    className="h-full w-1/3 rounded-full"
+                    style={{ backgroundColor: "#F2A43A" }}
+                  />
                 </div>
               </div>
             )

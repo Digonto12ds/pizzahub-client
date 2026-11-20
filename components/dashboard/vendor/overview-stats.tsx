@@ -54,39 +54,37 @@ const statsConfig = [
 
 function StatsSkeleton() {
   return (
-    <div
-      className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5"
-      style={{ backgroundColor: "transparent" }}
-    >
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
       {statsConfig.map((stat) => (
         <div
           key={stat.title}
           className="min-w-0 rounded-2xl border p-5 shadow-sm"
           style={{
-            backgroundColor: "#ffffff",
-            borderColor: "#f0e3d8",
+            background: "#FFFFFF",
+            border: "1px solid #F0E3D8",
+            color: "#35100A",
           }}
         >
           <div className="flex items-center justify-between">
             <div
-              className="size-11 animate-pulse rounded-xl"
-              style={{ backgroundColor: "#f3ece6" }}
+              className="size-11 rounded-xl"
+              style={{ backgroundColor: "#F3ECE6" }}
             />
 
             <div
-              className="h-4 w-12 animate-pulse rounded-full"
-              style={{ backgroundColor: "#f3ece6" }}
+              className="h-4 w-12 rounded-full"
+              style={{ backgroundColor: "#F3ECE6" }}
             />
           </div>
 
           <div
-            className="mt-5 h-4 w-28 animate-pulse rounded"
-            style={{ backgroundColor: "#f3ece6" }}
+            className="mt-5 h-4 w-28 rounded"
+            style={{ backgroundColor: "#F3ECE6" }}
           />
 
           <div
-            className="mt-3 h-8 w-20 animate-pulse rounded-lg"
-            style={{ backgroundColor: "#eee5dc" }}
+            className="mt-3 h-8 w-20 rounded-lg"
+            style={{ backgroundColor: "#EEE5DC" }}
           />
         </div>
       ))}

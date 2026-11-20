@@ -1,43 +1,26 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
-import { Search, ShieldBan, ShieldCheck, Users, RefreshCw } from "lucide-react"
+import {
+  Search,
+  ShieldBan,
+  ShieldCheck,
+  Users,
+  RefreshCw,
+} from "lucide-react"
+import Image from "next/image"
 import { toast } from "react-hot-toast"
 
-import { authClient } from "@/lib/auth-client"
-
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import Image from "next/image"
-
-type UserRole = "admin" | "vendor" | "customer"
-
-type User = {
-  _id: string
-  name: string
-  email: string
-  image?: string
-  role: UserRole
-  isBlocked: boolean
-  businessName?: string
-  subscriptionPlan?: string
-  createdAt?: string
-}
-
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+  getAdminUsers,
+  updateAdminUserStatus,
+  type AdminUser,
+  type UserRole,
+} from "@/lib/api/admin"
 
 export default function ManageUsersPage() {
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [search, setSearch] = useState("")
   const [role, setRole] = useState("all")
 
@@ -45,164 +28,206 @@ export default function ManageUsersPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [imageErrors, setImageErrors] = useState<string[]>([])
 
-  // Fetch users from backend
+  // Fetch users whenever search or role changes
   useEffect(() => {
+    const controller = new AbortController()
+
     const fetchUsers = async () => {
       try {
-        const { data, error } = await authClient.getSession()
-        const token = data?.session?.token
+        setLoading(true)
 
-        if (error || !token) {
-          throw new Error("Please sign in again.")
-        }
-
-        const params = new URLSearchParams({
-          search,
+        const data = await getAdminUsers(
+          search.trim(),
           role,
-        })
-
-        const response = await fetch(
-          `${API_URL}/api/admin/users?${params.toString()}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          controller.signal
         )
 
-        const result = await response.json()
-
-        if (!response.ok) {
-          throw new Error(result.message || "Failed to load users.")
-        }
-
-        setUsers(result.users || [])
+        setUsers(data)
+        setImageErrors([])
       } catch (error) {
+        if (controller.signal.aborted) return
+
         toast.error(
-          error instanceof Error ? error.message : "Something went wrong."
+          error instanceof Error
+            ? error.message
+            : "Failed to load users."
         )
       } finally {
-        setLoading(false)
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
 
-    fetchUsers()
+    // Small delay prevents an API request on every keystroke
+    const timeoutId = setTimeout(fetchUsers, 300)
+
+    return () => {
+      clearTimeout(timeoutId)
+      controller.abort()
+    }
   }, [search, role])
 
-  // Block or Unblock user
-  const handleUserStatus = async (user: User) => {
+  // Block or unblock a user
+  const handleUserStatus = async (user: AdminUser) => {
     try {
       setUpdatingId(user._id)
 
-      const { data, error } = await authClient.getSession()
-      const token = data?.session?.token
-
-      if (error || !token) {
-        throw new Error("Please sign in again.")
-      }
-
-      const response = await fetch(
-        `${API_URL}/api/admin/users/${user._id}/status`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            isBlocked: !user.isBlocked,
-          }),
-        }
+      const message = await updateAdminUserStatus(
+        user._id,
+        !user.isBlocked
       )
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to update user.")
-      }
 
       setUsers((previousUsers) =>
         previousUsers.map((item) =>
-          item._id === user._id ? { ...item, isBlocked: !user.isBlocked } : item
+          item._id === user._id
+            ? { ...item, isBlocked: !user.isBlocked }
+            : item
         )
       )
 
-      toast.success(result.message)
+      toast.success(message)
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to update user."
+        error instanceof Error
+          ? error.message
+          : "Failed to update user."
       )
     } finally {
       setUpdatingId(null)
     }
   }
 
-  const getRoleBadge = (userRole: UserRole) => {
+  // Role badge styles
+  const getRoleStyle = (userRole: UserRole) => {
     switch (userRole) {
       case "admin":
-        return (
-          <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100">
-            Admin
-          </Badge>
-        )
+        return {
+          backgroundColor: "#F3E8FF",
+          color: "#7E22CE",
+        }
 
       case "vendor":
-        return (
-          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
-            Vendor
-          </Badge>
-        )
+        return {
+          backgroundColor: "#DBEAFE",
+          color: "#1D4ED8",
+        }
 
       default:
-        return (
-          <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100">
-            Customer
-          </Badge>
-        )
+        return {
+          backgroundColor: "#F3F4F6",
+          color: "#374151",
+        }
     }
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div
+      className="min-h-full space-y-6 p-4 sm:p-6"
+      style={{
+        backgroundColor: "#FFF9F0",
+        color: "#35100A",
+      }}
+    >
       {/* Page Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Manage Users</h1>
+          <p
+            className="mb-2 text-sm font-semibold"
+            style={{ color: "#C93627" }}
+          >
+            USER MANAGEMENT
+          </p>
 
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            Manage Users
+          </h1>
+
+          <p
+            className="mt-2 text-sm"
+            style={{ color: "#786B62" }}
+          >
             View, search, and manage all registered users.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg border bg-card px-4 py-2">
-          <Users className="size-5 text-muted-foreground" />
-          <span className="text-sm font-medium">
-            {users.length} Users Found
-          </span>
+        {/* Users Count */}
+        <div
+          className="flex w-fit items-center gap-3 rounded-xl border px-4 py-3"
+          style={{
+            backgroundColor: "#FFFFFF",
+            borderColor: "#F0E3D8",
+          }}
+        >
+          <div
+            className="flex size-10 items-center justify-center rounded-lg"
+            style={{
+              backgroundColor: "#FCE7E3",
+              color: "#C93627",
+            }}
+          >
+            <Users className="size-5" />
+          </div>
+
+          <div>
+            <p className="text-xl font-bold">
+              {users.length.toLocaleString()}
+            </p>
+
+            <p
+              className="text-xs"
+              style={{ color: "#786B62" }}
+            >
+              Users Found
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Search and Filter */}
-      <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+      <div
+        className="flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row"
+        style={{
+          backgroundColor: "#FFFFFF",
+          borderColor: "#F0E3D8",
+        }}
+      >
+        {/* Search Input */}
+        <div className="relative min-w-0 flex-1">
+          <Search
+            className="absolute top-1/2 left-3 size-4 -translate-y-1/2"
+            style={{ color: "#9A8B80" }}
+          />
 
-          <Input
+          <input
             id="user-search"
             name="search"
+            type="search"
             placeholder="Search by name or email..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="pl-9"
+            className="h-11 w-full rounded-lg border py-2 pr-4 pl-10 text-sm outline-none transition focus:ring-2"
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderColor: "#E8DCD2",
+              color: "#35100A",
+              outlineColor: "#C93627",
+            }}
           />
         </div>
 
+        {/* Role Filter */}
         <select
           id="user-role"
           name="role"
           value={role}
           onChange={(event) => setRole(event.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          className="h-11 w-full rounded-lg border px-3 text-sm outline-none sm:w-48"
+          style={{
+            backgroundColor: "#FFFFFF",
+            borderColor: "#E8DCD2",
+            color: "#35100A",
+          }}
         >
           <option value="all">All Roles</option>
           <option value="admin">Admin</option>
@@ -212,147 +237,275 @@ export default function ManageUsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="overflow-hidden rounded-xl border bg-card">
+      <div
+        className="overflow-hidden rounded-2xl border shadow-sm"
+        style={{
+          backgroundColor: "#FFFFFF",
+          borderColor: "#F0E3D8",
+        }}
+      >
         <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Subscription</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
+          <table className="w-full min-w-[850px] border-collapse text-left text-sm">
+            <thead>
+              <tr style={{ backgroundColor: "#FFF5EA" }}>
+                {[
+                  "User",
+                  "Role",
+                  "Subscription",
+                  "Status",
+                  "Joined",
+                  "Action",
+                ].map((heading) => (
+                  <th
+                    key={heading}
+                    className="px-5 py-4 font-semibold whitespace-nowrap"
+                    style={{
+                      color: "#786B62",
+                      borderBottom: "1px solid #F0E3D8",
+                    }}
+                  >
+                    {heading}
+                  </th>
+                ))}
+              </tr>
+            </thead>
 
-            <TableBody>
+            <tbody>
               {loading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-32 text-center text-muted-foreground"
-                  >
-                    <RefreshCw className="mx-auto mb-2 size-5 animate-spin" />
-                    Loading users...
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={6} className="px-5 py-16 text-center">
+                    <RefreshCw
+                      className="mx-auto mb-3 size-6 animate-spin"
+                      style={{ color: "#C93627" }}
+                    />
+
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: "#786B62" }}
+                    >
+                      Loading users...
+                    </p>
+                  </td>
+                </tr>
               ) : users.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-32 text-center text-muted-foreground"
-                  >
-                    No users found.
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={6} className="px-5 py-16 text-center">
+                    <Users
+                      className="mx-auto mb-3 size-8"
+                      style={{ color: "#C8B8AC" }}
+                    />
+
+                    <p
+                      className="font-medium"
+                      style={{ color: "#786B62" }}
+                    >
+                      No users found.
+                    </p>
+
+                    <p
+                      className="mt-1 text-xs"
+                      style={{ color: "#9A8B80" }}
+                    >
+                      Try changing your search or role filter.
+                    </p>
+                  </td>
+                </tr>
               ) : (
                 users.map((user) => (
-                  <TableRow key={user._id}>
-                    {/* User Info */}
-                    <TableCell>
+                  <tr
+                    key={user._id}
+                    className="transition-colors hover:bg-[#FFFCF8]"
+                    style={{
+                      borderBottom: "1px solid #F5EEE8",
+                    }}
+                  >
+                    {/* User Information */}
+                    <td className="px-5 py-4">
                       <div className="flex min-w-52 items-center gap-3">
                         {user.image && !imageErrors.includes(user._id) ? (
                           <Image
                             src={user.image}
-                            alt={user.name}
+                            alt={user.name || "User"}
                             width={40}
                             height={40}
                             unoptimized
-                            className="size-10 rounded-full object-cover"
-                            loading="eager"
+                            className="size-10 shrink-0 rounded-full object-cover"
                             onError={() => {
-                              setImageErrors((prev: string[]) => [
-                                ...prev,
-                                user._id,
-                              ])
+                              setImageErrors((previous) =>
+                                previous.includes(user._id)
+                                  ? previous
+                                  : [...previous, user._id]
+                              )
                             }}
                           />
                         ) : (
-                          <div className="flex size-10 items-center justify-center rounded-full bg-muted font-semibold">
+                          <div
+                            className="flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+                            style={{
+                              backgroundColor: "#FCE7E3",
+                              color: "#C93627",
+                            }}
+                          >
                             {user.name?.charAt(0)?.toUpperCase() || "U"}
                           </div>
                         )}
 
                         <div className="min-w-0">
-                          <p className="truncate font-medium">{user.name}</p>
-                          <p className="max-w-52 truncate text-xs text-muted-foreground">
+                          <p className="truncate font-semibold">
+                            {user.name || "Unnamed User"}
+                          </p>
+
+                          <p
+                            className="max-w-52 truncate text-xs"
+                            style={{ color: "#786B62" }}
+                          >
                             {user.email}
                           </p>
+
                           {user.businessName && (
-                            <p className="mt-1 text-xs text-muted-foreground">
+                            <p
+                              className="mt-1 max-w-52 truncate text-xs"
+                              style={{ color: "#9A8B80" }}
+                            >
                               {user.businessName}
                             </p>
                           )}
                         </div>
                       </div>
-                    </TableCell>
+                    </td>
 
                     {/* Role */}
-                    <TableCell>{getRoleBadge(user.role)}</TableCell>
+                    <td className="px-5 py-4">
+                      <span
+                        className="inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize"
+                        style={getRoleStyle(user.role)}
+                      >
+                        {user.role}
+                      </span>
+                    </td>
 
                     {/* Subscription */}
-                    <TableCell>
+                    <td className="px-5 py-4">
                       {user.role === "vendor" ? (
-                        <Badge variant="outline">
+                        <span
+                          className="inline-flex rounded-full border px-3 py-1 text-xs font-medium"
+                          style={{
+                            backgroundColor: "#FFFBEB",
+                            borderColor: "#FDE68A",
+                            color: "#92400E",
+                          }}
+                        >
                           {user.subscriptionPlan || "Free"}
-                        </Badge>
+                        </span>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span style={{ color: "#9A8B80" }}>—</span>
                       )}
-                    </TableCell>
+                    </td>
 
                     {/* Account Status */}
-                    <TableCell>
+                    <td className="px-5 py-4">
                       {user.isBlocked ? (
-                        <Badge variant="destructive">Blocked</Badge>
+                        <span
+                          className="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
+                          style={{
+                            backgroundColor: "#FEE2E2",
+                            color: "#B91C1C",
+                          }}
+                        >
+                          Blocked
+                        </span>
                       ) : (
-                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+                        <span
+                          className="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
+                          style={{
+                            backgroundColor: "#DCFCE7",
+                            color: "#15803D",
+                          }}
+                        >
                           Active
-                        </Badge>
+                        </span>
                       )}
-                    </TableCell>
+                    </td>
 
-                    {/* Join Date */}
-                    <TableCell className="text-sm whitespace-nowrap text-muted-foreground">
+                    {/* Joined Date */}
+                    <td
+                      className="px-5 py-4 whitespace-nowrap"
+                      style={{ color: "#786B62" }}
+                    >
                       {user.createdAt
                         ? new Date(user.createdAt).toLocaleDateString()
                         : "—"}
-                    </TableCell>
+                    </td>
 
                     {/* Action */}
-                    <TableCell className="text-right">
-                      {user.role === "admin" ? (
-                        <span className="text-xs text-muted-foreground">
-                          Protected
-                        </span>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant={user.isBlocked ? "outline" : "destructive"}
-                          disabled={updatingId === user._id}
-                          onClick={() => handleUserStatus(user)}
-                        >
-                          {user.isBlocked ? (
-                            <>
-                              <ShieldCheck className="mr-1 size-4" />
-                              Unblock
-                            </>
-                          ) : (
-                            <>
-                              <ShieldBan className="mr-1 size-4" />
-                              Block
-                            </>
-                          )}
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                    <td className="px-5 py-4">
+                      <div className="flex justify-end">
+                        {user.role === "admin" ? (
+                          <span
+                            className="text-xs font-medium"
+                            style={{ color: "#9A8B80" }}
+                          >
+                            Protected
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleUserStatus(user)}
+                            disabled={updatingId === user._id}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
+                            style={
+                              user.isBlocked
+                                ? {
+                                    backgroundColor: "#DCFCE7",
+                                    color: "#15803D",
+                                  }
+                                : {
+                                    backgroundColor: "#FEE2E2",
+                                    color: "#B91C1C",
+                                  }
+                            }
+                          >
+                            {updatingId === user._id ? (
+                              <RefreshCw className="size-4 animate-spin" />
+                            ) : user.isBlocked ? (
+                              <ShieldCheck className="size-4" />
+                            ) : (
+                              <ShieldBan className="size-4" />
+                            )}
+
+                            {updatingId === user._id
+                              ? "Updating..."
+                              : user.isBlocked
+                                ? "Unblock"
+                                : "Block"}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
                 ))
               )}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
         </div>
+
+        {/* Table Footer */}
+        {!loading && users.length > 0 && (
+          <div
+            className="flex flex-col gap-2 px-5 py-4 text-xs sm:flex-row sm:items-center sm:justify-between"
+            style={{
+              backgroundColor: "#FFFCF8",
+              color: "#786B62",
+              borderTop: "1px solid #F0E3D8",
+            }}
+          >
+            <p>
+              Showing {users.length.toLocaleString()} users
+            </p>
+
+            <p>PizzaHub Admin Management</p>
+          </div>
+        )}
       </div>
     </div>
   )
