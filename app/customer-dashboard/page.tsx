@@ -363,6 +363,7 @@ export default function CustomerDashboard() {
                             fill
                             sizes="(max-width: 640px) 100vw, 128px"
                             className="object-cover"
+                            loading="eager"
                           />
                         ) : (
                           <div className="flex h-full items-center justify-center text-3xl">
@@ -473,6 +474,7 @@ export default function CustomerDashboard() {
                     alt={selectedOrder.item.itemName}
                     fill
                     sizes="(max-width: 640px) 100vw, 512px"
+                    loading="eager"
                     className="object-cover"
                   />
                 ) : (

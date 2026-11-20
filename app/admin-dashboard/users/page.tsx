@@ -188,6 +188,8 @@ export default function ManageUsersPage() {
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
 
           <Input
+            id="user-search"
+            name="search"
             placeholder="Search by name or email..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -196,6 +198,8 @@ export default function ManageUsersPage() {
         </div>
 
         <select
+          id="user-role"
+          name="role"
           value={role}
           onChange={(event) => setRole(event.target.value)}
           className="h-10 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -256,6 +260,7 @@ export default function ManageUsersPage() {
                             height={40}
                             unoptimized
                             className="size-10 rounded-full object-cover"
+                            loading="eager"
                             onError={() => {
                               setImageErrors((prev: string[]) => [
                                 ...prev,

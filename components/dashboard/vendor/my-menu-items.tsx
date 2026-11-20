@@ -364,6 +364,7 @@ export default function MyMenuItems() {
                     unoptimized
                     sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                     className="object-cover"
+                    loading="eager"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-gray-400">

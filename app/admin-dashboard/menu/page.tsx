@@ -517,6 +517,7 @@ try {
                             height={56}
                             unoptimized
                             className="size-14 rounded-xl border border-gray-100 object-cover"
+                            loading="eager"
                           />
                         ) : (
                           <div className="flex size-14 items-center justify-center rounded-xl bg-orange-50 text-[#C93627]">

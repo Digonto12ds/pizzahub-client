@@ -252,6 +252,7 @@ export default function CustomerOrders() {
                           height={44}
                           unoptimized
                           className="size-11 rounded-full object-cover"
+                          loading="eager"
                         />
                       ) : (
                         <div className="flex size-11 items-center justify-center rounded-full bg-orange-100 text-[#C93627]">
@@ -289,6 +290,7 @@ export default function CustomerOrders() {
                             unoptimized
                             sizes="80px"
                             className="object-cover"
+                            loading="eager"
                           />
                         ) : (
                           <div className="flex h-full items-center justify-center text-[#C93627]">

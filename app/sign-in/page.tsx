@@ -115,13 +115,6 @@ export default function SignInPage() {
       <div className="relative z-10 grid w-full max-w-5xl overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-2xl shadow-orange-950/10 lg:grid-cols-2">
         {/* Left Side */}
         <div className="relative hidden min-h-155 flex-col justify-between overflow-hidden bg-[#35100A] p-10 lg:flex">
-          <Image
-            src="/Banner.png"
-            alt="Fresh Pizza"
-            fill
-            sizes="50vw"
-            className="object-cover opacity-40"
-          />
 
           <div className="absolute inset-0 bg-linear-to-t from-[#210500] via-[#35100A]/50 to-[#35100A]/30" />
 

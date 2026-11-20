@@ -123,6 +123,7 @@ function VendorAvatar({
       unoptimized
       onError={() => setImageError(true)}
       className="h-10 w-10 shrink-0 rounded-full object-cover"
+      loading="eager"
     />
   );
 }
