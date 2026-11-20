@@ -54,20 +54,40 @@ const statsConfig = [
 
 function StatsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    <div
+      className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5"
+      style={{ backgroundColor: "transparent" }}
+    >
       {statsConfig.map((stat) => (
         <div
           key={stat.title}
-          className="min-w-0 rounded-2xl border border-[#f0e3d8] bg-white p-5 shadow-sm"
+          className="min-w-0 rounded-2xl border p-5 shadow-sm"
+          style={{
+            backgroundColor: "#ffffff",
+            borderColor: "#f0e3d8",
+          }}
         >
           <div className="flex items-center justify-between">
-            <div className="size-11 animate-pulse rounded-xl bg-[#f3ece6]" />
-            <div className="h-4 w-12 animate-pulse rounded-full bg-[#f3ece6]" />
+            <div
+              className="size-11 animate-pulse rounded-xl"
+              style={{ backgroundColor: "#f3ece6" }}
+            />
+
+            <div
+              className="h-4 w-12 animate-pulse rounded-full"
+              style={{ backgroundColor: "#f3ece6" }}
+            />
           </div>
 
-          <div className="mt-5 h-4 w-28 animate-pulse rounded bg-[#f3ece6]" />
+          <div
+            className="mt-5 h-4 w-28 animate-pulse rounded"
+            style={{ backgroundColor: "#f3ece6" }}
+          />
 
-          <div className="mt-3 h-8 w-20 animate-pulse rounded-lg bg-[#eee5dc]" />
+          <div
+            className="mt-3 h-8 w-20 animate-pulse rounded-lg"
+            style={{ backgroundColor: "#eee5dc" }}
+          />
         </div>
       ))}
     </div>

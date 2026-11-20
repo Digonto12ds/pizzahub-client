@@ -120,14 +120,7 @@ export default function SignInPage() {
 
           <div className="relative z-10">
             <Link href="/" className="flex items-center gap-3">
-              <Image
-                src="/pizzahub-log.png"
-                alt="PizzaHub"
-                width={48}
-                height={48}
-                className="rounded-xl"
-              />
-              <span className="text-2xl font-black text-white">
+              <span className="text-2xl font-black text-[#C93627]">
                 PizzaHub<span className="text-orange-400">.</span>
               </span>
             </Link>
@@ -161,13 +154,6 @@ export default function SignInPage() {
         <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
           {/* Mobile Logo */}
           <Link href="/" className="mb-8 flex items-center gap-3 lg:hidden">
-            <Image
-              src="/pizzahub-log.png"
-              alt="PizzaHub"
-              width={42}
-              height={42}
-              className="rounded-xl"
-            />
             <span className="text-2xl font-black text-[#C93627]">
               PizzaHub<span className="text-orange-400">.</span>
             </span>
