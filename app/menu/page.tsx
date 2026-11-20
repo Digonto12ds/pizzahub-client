@@ -1,19 +1,25 @@
-"use client"
 
-import { useEffect, useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
+"use client";
 
-import { Search, MapPin, Pizza, UtensilsCrossed } from "lucide-react"
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
-import { getMenuItems, type MenuItem } from "@/lib/api/menu"
-import { authClient } from "@/lib/auth-client"
+import {
+  Search,
+  MapPin,
+  Pizza,
+  UtensilsCrossed,
+} from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
+import { getMenuItems, type MenuItem } from "@/lib/api/menu";
+import { authClient } from "@/lib/auth-client";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   Select,
@@ -21,8 +27,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
+// Menu categories
 const categories = [
   "Classic Pizzas",
   "Vegetarian Pizzas",
@@ -30,11 +37,12 @@ const categories = [
   "Specialty / Gourmet Pizzas",
   "Sides & Appetizers",
   "Beverages & Desserts",
-]
+];
 
+// Loading skeleton
 function MenuCardSkeleton() {
   return (
-    <Card className="overflow-hidden border-orange-100">
+    <Card className="overflow-hidden border-orange-100 bg-white">
       <Skeleton className="h-52 w-full rounded-none" />
 
       <CardContent className="space-y-4 p-5">
@@ -45,29 +53,35 @@ function MenuCardSkeleton() {
         <Skeleton className="h-10 w-full" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default function BrowseMenuPage() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([])
-  const [search, setSearch] = useState("")
-  const [category, setCategory] = useState("all")
-  const [location, setLocation] = useState("")
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [refreshCount, setRefreshCount] = useState(0)
+  // Search and filter states
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
+  const [location, setLocation] = useState("");
+
+  // Sorting state
+  const [sortBy, setSortBy] = useState("default");
+
+  // Loading and error states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [refreshCount, setRefreshCount] = useState(0);
 
   // Check whether the user is logged in
-  const { data: session, isPending } = authClient.useSession()
+  const { data: session, isPending } = authClient.useSession();
 
   // Fetch menu items whenever a filter changes
   useEffect(() => {
-    const controller = new AbortController()
+    const controller = new AbortController();
 
     const timeout = setTimeout(async () => {
-      setLoading(true)
-      setError("")
+      setLoading(true);
+      setError("");
 
       try {
         const data = await getMenuItems(
@@ -77,36 +91,59 @@ export default function BrowseMenuPage() {
             location: location.trim(),
           },
           controller.signal
-        )
+        );
 
-        setMenuItems(data)
+        setMenuItems(data);
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {
-          return
+          return;
         }
 
-        setError("Something went wrong while loading menu items.")
+        setError("Something went wrong while loading menu items.");
       } finally {
         if (!controller.signal.aborted) {
-          setLoading(false)
+          setLoading(false);
         }
       }
-    }, 300)
+    }, 300);
 
     return () => {
-      clearTimeout(timeout)
-      controller.abort()
-    }
-  }, [search, category, location, refreshCount])
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [search, category, location, refreshCount]);
 
+  // Sort menu items based on selected option
+  const sortedMenuItems = [...menuItems].sort((a, b) => {
+    switch (sortBy) {
+      case "price-low":
+        return a.price - b.price;
+
+      case "price-high":
+        return b.price - a.price;
+
+      case "name-asc":
+        return a.itemName.localeCompare(b.itemName);
+
+      case "name-desc":
+        return b.itemName.localeCompare(a.itemName);
+
+      default:
+        return 0;
+    }
+  });
+
+  // Clear all filters and sorting
   const clearFilters = () => {
-    setSearch("")
-    setCategory("all")
-    setLocation("")
-  }
+    setSearch("");
+    setCategory("all");
+    setLocation("");
+    setSortBy("default");
+  };
 
   return (
     <main className="min-h-screen bg-[#FFF9F0]">
+
       {/* Page Heading */}
       <section className="bg-[#35100A] px-4 py-16 text-center text-white sm:py-20">
         <Badge className="mb-4 border-none bg-[#C93627] px-4 py-1.5 text-white hover:bg-[#C93627]">
@@ -124,19 +161,22 @@ export default function BrowseMenuPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+
         {/* Search and Filters */}
         <div className="mb-8 rounded-2xl border border-orange-100 bg-white p-4 shadow-sm sm:p-6">
+
           <div className="mb-5">
             <h2 className="text-xl font-bold text-[#35100A]">
               Find Your Perfect Meal
             </h2>
 
             <p className="mt-1 text-sm text-gray-500">
-              Search and filter our available menu items.
+              Search, filter, and sort our available menu items.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+
             {/* Search by name */}
             <div className="relative">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
@@ -180,8 +220,42 @@ export default function BrowseMenuPage() {
                 className="h-11 border-orange-100 pl-10 focus-visible:ring-[#C93627]"
               />
             </div>
+
+            {/* Sort menu items */}
+            <Select
+              value={sortBy}
+              onValueChange={(value) => setSortBy(value ?? "default")}
+            >
+              <SelectTrigger className="h-11 w-full border-orange-100 focus:ring-[#C93627]">
+                <SelectValue placeholder="Sort menu items" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="default">
+                  Default Sorting
+                </SelectItem>
+
+                <SelectItem value="price-low">
+                  Price: Low to High
+                </SelectItem>
+
+                <SelectItem value="price-high">
+                  Price: High to Low
+                </SelectItem>
+
+                <SelectItem value="name-asc">
+                  Name: A to Z
+                </SelectItem>
+
+                <SelectItem value="name-desc">
+                  Name: Z to A
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
           </div>
 
+          {/* Clear Filters */}
           <div className="mt-4 flex justify-end">
             <Button
               variant="outline"
@@ -202,7 +276,7 @@ export default function BrowseMenuPage() {
 
             {!loading && !error && (
               <p className="mt-1 text-sm text-gray-500">
-                {menuItems.length} menu item(s) found
+                {sortedMenuItems.length} menu item(s) found
               </p>
             )}
           </div>
@@ -255,15 +329,15 @@ export default function BrowseMenuPage() {
         )}
 
         {/* Menu Cards */}
-        {!loading && !error && menuItems.length > 0 && (
+        {!loading && !error && sortedMenuItems.length > 0 && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {menuItems.map((item) => {
-              const detailsHref = `/menu/${item._id}`
+            {sortedMenuItems.map((item) => {
+              const detailsHref = `/menu/${item._id}`;
 
               // Logged-out users must sign in before viewing details
               const viewDetailsHref = session
                 ? detailsHref
-                : `/sign-in?callbackURL=${encodeURIComponent(detailsHref)}`
+                : `/sign-in?callbackURL=${encodeURIComponent(detailsHref)}`;
 
               return (
                 <Card
@@ -280,6 +354,7 @@ export default function BrowseMenuPage() {
                         unoptimized
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="eager"
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center">
@@ -293,6 +368,7 @@ export default function BrowseMenuPage() {
                   </div>
 
                   <CardContent className="space-y-4 p-5">
+
                     {/* Name and Price */}
                     <div className="flex items-start justify-between gap-3">
                       <h3 className="text-lg font-bold text-[#35100A]">
@@ -304,6 +380,7 @@ export default function BrowseMenuPage() {
                       </span>
                     </div>
 
+                    {/* Location */}
                     <p className="flex items-center gap-2 text-sm text-gray-500">
                       <MapPin className="size-4 shrink-0 text-[#C93627]" />
                       {item.location}
@@ -319,6 +396,7 @@ export default function BrowseMenuPage() {
                           height={40}
                           unoptimized
                           className="size-10 rounded-full object-cover"
+                          loading="eager"
                         />
                       ) : (
                         <div className="flex size-10 items-center justify-center rounded-full bg-red-100 text-[#C93627]">
@@ -350,13 +428,15 @@ export default function BrowseMenuPage() {
                         View Details
                       </Link>
                     )}
+
                   </CardContent>
                 </Card>
-              )
+              );
             })}
           </div>
         )}
+
       </section>
     </main>
-  )
+  );
 }

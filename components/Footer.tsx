@@ -1,155 +1,132 @@
 import Link from "next/link"
-import { MapPin, Phone, Mail, Clock, Heart } from "lucide-react"
+import { MapPin, Phone, Mail, Clock, Heart, ArrowUpRight } from "lucide-react"
+
+const quickLinks = [
+  { name: "Home", href: "/" },
+  { name: "Explore Menu", href: "/menu" },
+  { name: "My Profile", href: "/profile" },
+  { name: "Checkout", href: "/checkout" },
+];
+
+const supportLinks = [
+  { name: "Sign In", href: "/sign-in" },
+  { name: "Sign Up", href: "/sign-up" },
+];
 
 const socialLinks = [
-  { name: "Facebook", href: "https://www.facebook.com/" },
-  { name: "Instagram", href: "https://www.instagram.com/" },
-  { name: "X", href: "https://x.com/" },
+  { name: "Facebook", href: "https://www.facebook.com/", label: "f" },
+  { name: "Instagram", href: "https://www.instagram.com/", label: "ig" },
+  { name: "X", href: "https://x.com/", label: "𝕏" },
 ]
-
 export default function Footer() {
   return (
     <footer className="relative mt-20 overflow-hidden bg-[#211714] text-[#FFF7ED]">
       {/* Decorative top border */}
       <div className="h-1 w-full bg-linear-to-r from-[#C93627] via-[#F2A43A] to-[#C93627]" />
 
-      {/* Main Footer */}
-      <div className="mx-auto max-w-7xl px-5 pt-16 pb-10 sm:px-8 lg:px-10">
-        {/* Footer Grid */}
+      <div className="relative mx-auto max-w-7xl px-5 pt-14 pb-8 sm:px-8 lg:px-10">
+        {/* Main Footer */}
         <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-12 lg:gap-10">
           {/* Brand Section */}
           <div className="lg:col-span-4">
-            <Link href="/" className="inline-flex items-center gap-3">
-              <div>
-                <h2 className="text-3xl font-black tracking-tight text-white">
-                  PizzaHub<span className="text-[#F2A43A]">.</span>
-                </h2>
-                <p className="text-[10px] font-bold tracking-[2.5px] text-[#D7A77C]">
-                  FRESH · HOT · DELICIOUS
-                </p>
-              </div>
+            <Link href="/" className="inline-flex flex-col">
+              <span className="text-3xl font-black tracking-tight text-white">
+                PizzaHub<span className="text-[#F2A43A]">.</span>
+              </span>
+
+              <span className="mt-1 text-[10px] font-bold tracking-[3px] text-[#D7A77C]">
+                FRESH · HOT · DELICIOUS
+              </span>
             </Link>
 
             <p className="mt-6 max-w-sm text-sm leading-7 text-[#B9A69B]">
               Your next favorite pizza is just a few clicks away. Discover
-              amazing local pizza shops, explore delicious menus, and get fresh
-              pizza delivered right to your door.
+              amazing local pizza shops, explore delicious menus, and enjoy
+              fresh pizza delivered to your door.
             </p>
 
             {/* Social Links */}
-            <div className="mt-7 flex items-center gap-3">
-              <span className="mr-1 text-xs font-bold tracking-widest text-[#D7A77C] uppercase">
-                Follow us
-              </span>
+            <div className="mt-7">
+              <p className="mb-4 text-xs font-bold tracking-[2px] text-[#D7A77C] uppercase">
+                Follow Us
+              </p>
 
-              {socialLinks.map((social) => (
-                <Link
-                  key={social.name}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={social.name}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#514039] text-sm font-bold text-[#FFF7ED] transition-all duration-200 hover:-translate-y-1 hover:border-[#F2A43A] hover:bg-[#C93627] hover:text-white"
-                >
-                  {social.name === "Facebook" && "f"}
-                  {social.name === "Instagram" && "ig"}
-                  {social.name === "X" && "𝕏"}
-                </Link>
-              ))}
+              <div className="flex items-center gap-3">
+                {socialLinks.map((social) => (
+                  <Link
+                    key={social.name}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.name}
+                    className="flex size-10 items-center justify-center rounded-xl border border-[#514039] text-sm font-bold text-[#FFF7ED] transition-all duration-200 hover:-translate-y-1 hover:border-[#F2A43A] hover:bg-[#C93627] hover:text-white"
+                  >
+                    {social.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
 
+          {/* Quick Navigation */}
           <div className="lg:col-span-2">
-            <h3 className="mb-6 text-base font-bold text-white">
-              PizzaHub Highlights
-            </h3>
+            <h3 className="mb-6 text-base font-bold text-white">Quick Links</h3>
 
-            <ul className="space-y-5">
-              <li className="flex items-center gap-3">
-                <span className="text-xl">🍕</span>
-                <span className="text-sm text-[#B9A69B]">
-                  A World of Pizza Flavors
-                </span>
-              </li>
-
-              <li className="flex items-center gap-3">
-                <span className="text-xl">🏪</span>
-                <span className="text-sm text-[#B9A69B]">
-                  Discover Local Restaurants
-                </span>
-              </li>
-
-              <li className="flex items-center gap-3">
-                <span className="text-xl">🛵</span>
-                <span className="text-sm text-[#B9A69B]">
-                  Convenient Online Ordering
-                </span>
-              </li>
-
-              <li className="flex items-center gap-3">
-                <span className="text-xl">❤️</span>
-                <span className="text-sm text-[#B9A69B]">
-                  Made for Pizza Lovers
-                </span>
-              </li>
+            <ul className="space-y-4">
+              {quickLinks.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className="group inline-flex items-center gap-1 text-sm text-[#B9A69B] transition-colors hover:text-[#F2A43A]"
+                  >
+                    {link.name}
+                    <ArrowUpRight
+                      size={13}
+                      className="opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100"
+                    />
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          <div className="lg:col-span-3">
+          {/* Customer Support */}
+          <div className="lg:col-span-2">
             <h3 className="mb-6 text-base font-bold text-white">
-              Why PizzaHub?
+              Customer Support
             </h3>
 
-            <ul className="space-y-5">
-              <li className="flex items-start gap-3">
-                <span className="mt-0.5 text-lg">🍕</span>
-                <div>
-                  <p className="text-sm font-semibold text-[#FFF7ED]">
-                    Delicious Choices
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-[#B9A69B]">
-                    Explore a variety of pizzas and tasty treats.
-                  </p>
-                </div>
-              </li>
-
-              <li className="flex items-start gap-3">
-                <span className="mt-0.5 text-lg">🏪</span>
-                <div>
-                  <p className="text-sm font-semibold text-[#FFF7ED]">
-                    Local Pizza Shops
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-[#B9A69B]">
-                    Discover amazing menus from local vendors.
-                  </p>
-                </div>
-              </li>
-
-              <li className="flex items-start gap-3">
-                <span className="mt-0.5 text-lg">❤️</span>
-                <div>
-                  <p className="text-sm font-semibold text-[#FFF7ED]">
-                    Made for Pizza Lovers
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-[#B9A69B]">
-                    Your next favorite pizza is waiting for you.
-                  </p>
-                </div>
-              </li>
+            <ul className="space-y-4">
+              {supportLinks.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className="group inline-flex items-center gap-1 text-sm text-[#B9A69B] transition-colors hover:text-[#F2A43A]"
+                  >
+                    {link.name}
+                    <ArrowUpRight
+                      size={13}
+                      className="opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100"
+                    />
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Contact Section */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-4">
             <h3 className="mb-6 text-base font-bold text-white">
               Get In Touch
             </h3>
 
             <div className="space-y-5">
+              {/* Location */}
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#C93627]/15 text-[#F2A43A]">
-                  <MapPin size={17} />
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#C93627]/15 text-[#F2A43A]">
+                  <MapPin size={18} />
                 </div>
+
                 <div>
                   <p className="text-xs font-semibold text-[#D7A77C]">
                     Our Location
@@ -160,10 +137,12 @@ export default function Footer() {
                 </div>
               </div>
 
+              {/* Phone */}
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#C93627]/15 text-[#F2A43A]">
-                  <Phone size={17} />
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#C93627]/15 text-[#F2A43A]">
+                  <Phone size={18} />
                 </div>
+
                 <div>
                   <p className="text-xs font-semibold text-[#D7A77C]">
                     Call Us
@@ -177,10 +156,12 @@ export default function Footer() {
                 </div>
               </div>
 
+              {/* Email */}
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#C93627]/15 text-[#F2A43A]">
-                  <Mail size={17} />
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#C93627]/15 text-[#F2A43A]">
+                  <Mail size={18} />
                 </div>
+
                 <div>
                   <p className="text-xs font-semibold text-[#D7A77C]">
                     Email Us
@@ -194,10 +175,12 @@ export default function Footer() {
                 </div>
               </div>
 
+              {/* Working Hours */}
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#C93627]/15 text-[#F2A43A]">
-                  <Clock size={17} />
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#C93627]/15 text-[#F2A43A]">
+                  <Clock size={18} />
                 </div>
+
                 <div>
                   <p className="text-xs font-semibold text-[#D7A77C]">
                     Working Hours
@@ -212,21 +195,11 @@ export default function Footer() {
         </div>
 
         {/* Bottom Footer */}
-        <div className="mt-16 border-t border-[#49352D] pt-7">
-          <div className="flex flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-left">
+        <div className="mt-14 border-t border-[#49352D] pt-7">
+          <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
             <p className="text-xs text-[#A99386]">
               © {new Date().getFullYear()} PizzaHub. All rights reserved.
             </p>
-
-            <div className="flex flex-wrap items-center justify-center gap-5 text-xs text-[#A99386]">
-              <Link href="/privacy" className="transition hover:text-[#F2A43A]">
-                Privacy Policy
-              </Link>
-
-              <Link href="/terms" className="transition hover:text-[#F2A43A]">
-                Terms & Conditions
-              </Link>
-            </div>
 
             <p className="flex items-center gap-1.5 text-xs text-[#A99386]">
               Made with
@@ -235,11 +208,6 @@ export default function Footer() {
             </p>
           </div>
         </div>
-      </div>
-
-      {/* Decorative background text */}
-      <div className="pointer-events-none absolute right-5 -bottom-8 text-8xl font-black text-white/2.5 select-none sm:text-9xl">
-        PIZZA
       </div>
     </footer>
   )
