@@ -74,6 +74,7 @@ export default function CustomerOrders() {
     order: VendorOrder,
     status: "Accepted" | "Rejected"
   ) => {
+
     if (order.status !== "Pending") return;
 
     try {

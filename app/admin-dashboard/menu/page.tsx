@@ -37,6 +37,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 export default function ManageMenuPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [search, setSearch] = useState("");
@@ -210,14 +222,9 @@ useEffect(() => {
   };
 
   // Delete an item
-  const handleDelete = async (id: string, itemName: string) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${itemName}"? This action cannot be undone.`
-    );
-
-    if (!confirmed) return;
-
-    try {
+  const handleDelete = async (id: string) => {
+   
+try {
       setUpdatingId(id);
 
       const { data: session } = await authClient.getSession();
@@ -612,18 +619,41 @@ useEffect(() => {
                           </Button>
                         )}
 
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          disabled={updatingId === item._id}
-                          onClick={() =>
-                            handleDelete(item._id, item.itemName)
-                          }
-                          className="size-9 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                          aria-label={`Delete ${item.itemName}`}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                        <AlertDialog>
+ <AlertDialogTrigger
+  disabled={updatingId === item._id}
+  className="flex size-9 items-center justify-center rounded-md border border-red-200 text-red-600 transition hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+  aria-label={`Delete ${item.itemName}`}
+>
+  <Trash2 className="size-4" />
+</AlertDialogTrigger>
+
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>
+        Are you absolutely sure?
+      </AlertDialogTitle>
+
+      <AlertDialogDescription>
+        This will permanently delete &quot;{item.itemName}&quot;.
+This action cannot be undone.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+
+    <AlertDialogFooter>
+      <AlertDialogCancel>
+        Cancel
+      </AlertDialogCancel>
+
+      <AlertDialogAction
+        onClick={() => handleDelete(item._id)}
+        className="bg-red-600 text-white hover:bg-red-700"
+      >
+        Delete
+      </AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>

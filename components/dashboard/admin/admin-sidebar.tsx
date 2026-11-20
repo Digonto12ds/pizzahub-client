@@ -8,7 +8,6 @@ import {
   Users,
   UtensilsCrossed,
   CreditCard,
-  ShoppingBag,
   X,
   Pizza,
 } from "lucide-react"
@@ -38,11 +37,6 @@ const navigation = [
     name: "Transactions",
     href: "/admin-dashboard/transactions",
     icon: CreditCard,
-  },
-  {
-    name: "Orders",
-    href: "/admin-dashboard/orders",
-    icon: ShoppingBag,
   },
 ]
 

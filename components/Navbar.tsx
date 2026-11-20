@@ -64,8 +64,6 @@ export default function Navbar() {
 
   const user = session?.user
 
-  console.log("Session:", session);
-console.log("User image:", user?.image);
   // Get user role
   const role = (user as (typeof user & { role?: string }) | undefined)?.role
 
